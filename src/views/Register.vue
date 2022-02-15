@@ -1,15 +1,15 @@
 <template>
   <div class="register">
-    <el-form ref="form" :model="form" label-width="60px" size="mini">
+    <el-form ref="form" :model="mailForm" label-width="60px" size="mini">
       <el-form-item label="邮箱" class="em">
-        <el-input style="width: 260px;padding-right:12px" v-model="form.email"/>
+        <el-input style="width: 260px;padding-right:12px" v-model="mailForm.email"/>
         <el-button type="primary" @click="getCode">
           <span v-show="show">发送验证码</span>
           <span v-show="!show">{{ count }} s后重发</span>
         </el-button>
       </el-form-item>
       <el-form-item label="验证码" class="cd">
-        <el-input v-model="form.code"></el-input>
+        <el-input v-model="mailForm.code"></el-input>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="submit">验证</el-button>
@@ -26,22 +26,22 @@ export default {
     return {
       show: true,
       count: '',
-      form: {
-        email: this.email,
-        code: this.code
+      mailForm: {
+        email: '2659445660@qq.com',
+        code: ''
       }
     };
   },
   methods: {
     getCode() {
       const regexMail = /^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/
-      if (!regexMail.test(this.form.email)) {
+      if (!regexMail.test(this.mailForm.email)) {
         this.$message.error('请输入正确的邮件地址')
       } else {
         this.axios.get("api/sendMail", {
           params: {
-            receiver: this.form.email,
-            checkCode: this.form.code
+            receiver: this.mailForm.email,
+            checkCode: this.mailForm.code
           }
         }).then(() => {
           this.$message.success('已发送验证码')
@@ -65,22 +65,17 @@ export default {
       }
     },
     submit() {
-      const data = {
-        email: this.email,
-        code: this.code
-      };
-      this.axios.post("url", data).then(res => {
-        if ((res.data.code = '')) {
-          this.$message.error('验证码错误')
-        } else {
-          // this.$router.push({path: "/login"});
+      this.axios.post("api/verify", this.mailForm).then(res => {
+        if ((res.data)) {
           this.$message.success('验证通过')
+        } else {
+          this.$message.error('验证失败')
         }
       }).catch(() => {
-        this.$message.error('请求超时，请检查网络连接')
+        console.error()
+        this.$message.error('请求错误')
       });
-    }
-    ,
+    },
   }
 }
 </script>
@@ -89,7 +84,7 @@ export default {
 .register {
   width: 435px;
   margin: 180px auto;
-  border: 1px solid black;
+  border: 1px solid gray;
   padding: 20px;
   border-radius: 10px;
 }
