@@ -36,15 +36,14 @@ export default {
     getCode() {
       const regexMail = /^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/
       if (!regexMail.test(this.mailForm.email)) {
-        this.$message.error('请输入正确的邮件地址')
+        this.$message.warning('请输入正确的邮件地址')
       } else {
-        this.axios.get("api/sendMail", {
-          params: {
-            receiver: this.mailForm.email,
-            checkCode: this.mailForm.code
+        this.axios.post("api/sendMail", this.mailForm).then(res => {
+          if (res.data.code === 200) {
+            this.$message.success(res.data.message)
+          } else {
+            this.$message.error(res.data.message)
           }
-        }).then(() => {
-          this.$message.success('已发送验证码')
         }).catch(() => {
           this.$message.error('发送失败')
         });
@@ -66,10 +65,10 @@ export default {
     },
     submit() {
       this.axios.post("api/verify", this.mailForm).then(res => {
-        if ((res.data)) {
-          this.$message.success('验证通过')
+        if ((res.data.code === 200)) {
+          this.$message.success(res.data.message)
         } else {
-          this.$message.error('验证失败')
+          this.$message.error(res.data.message)
         }
       }).catch(() => {
         console.error()
