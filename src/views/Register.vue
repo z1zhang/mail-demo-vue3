@@ -8,6 +8,12 @@
           <span v-show="!show">{{ count }} s后重发</span>
         </el-button>
       </el-form-item>
+      <el-form-item label="密码" class="cd">
+        <el-input v-model="mailForm.password"></el-input>
+      </el-form-item>
+      <el-form-item label="密码" class="cd">
+        <el-input v-model="password2"></el-input>
+      </el-form-item>
       <el-form-item label="验证码" class="cd">
         <el-input v-model="mailForm.code"></el-input>
       </el-form-item>
@@ -26,8 +32,10 @@ export default {
     return {
       show: true,
       count: '',
+      password2: '',
       mailForm: {
         email: '2659445660@qq.com',
+        password: '',
         code: ''
       }
     };
@@ -36,10 +44,10 @@ export default {
     getCode() {
       const regexMail = /^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/
       if (!regexMail.test(this.mailForm.email)) {
-        this.$message.warning('请输入正确的邮件地址')
+        this.$message.warning('请输入正确的邮箱')
       } else {
         this.axios.post("api/sendMail", this.mailForm).then(res => {
-          if (res.data.code === 200) {
+          if (res.data.status === 200) {
             this.$message.success(res.data.message)
           } else {
             this.$message.error(res.data.message)
@@ -64,16 +72,24 @@ export default {
       }
     },
     submit() {
-      this.axios.post("api/verify", this.mailForm).then(res => {
-        if ((res.data.code === 200)) {
-          this.$message.success(res.data.message)
-        } else {
-          this.$message.error(res.data.message)
-        }
-      }).catch(() => {
-        console.error()
-        this.$message.error('请求错误')
-      });
+      // 验证码校验
+      const regexCode = /^[0-9]{6}$/
+      if (!regexCode.test(this.mailForm.code)) {
+        this.$message.warning('请输入正确的验证码')
+      } else if (this.password2 !== this.mailForm.password) {
+        this.$message.error('密码不一致');
+      } else {
+        this.axios.post("api/addUser", this.mailForm).then(res => {
+          if ((res.data.status === 200)) {
+            this.$message.success(res.data.message)
+          } else {
+            this.$message.error(res.data.message)
+          }
+        }).catch(() => {
+          console.error()
+          this.$message.error('请求错误')
+        });
+      }
     },
   }
 }
